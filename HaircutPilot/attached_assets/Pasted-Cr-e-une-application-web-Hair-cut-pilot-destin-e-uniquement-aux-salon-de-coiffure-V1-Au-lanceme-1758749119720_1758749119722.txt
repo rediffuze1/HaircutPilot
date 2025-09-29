@@ -1,0 +1,209 @@
+Crée une application web “Hair cut pilot” destinée uniquement aux salon de coiffure (V1). Au lancement de l’app, l’utilisateur arrive toujours sur la landing page (définie comme route par défaut / home screen). Après authentification (login / sign up), il accède à un dashboard RH minimaliste, élégant, animé et cohérent avec le branding de la landing page. Intègre un assistant IA pour analyses & résumés.
+
+1. Branding, UI & Animations
+Style général : minimal, premium, moderne. Layout aéré, cards arrondies, ombres douces, micro-interactions.
+Palette (modifiable si besoin) :
+Primaire : #bbb3f4 (violet)
+Secondaire : #a8efff (cyan)
+Accent : #f1f9f4 (mint)
+Fond profond : #e7f1f8
+Texte : #2d333e
+Typo : Inter (ou équivalent), titres bold, texte régulier.
+Boutons : style glassmorphism (effet “glace”) : fond semi-transparent, blur, léger bord blanc 20% opacité, hover avec légère élévation + glow subtil.
+Arrière-plan landing : formes géométriques animées (cercles/triangles/polygones) en très faible opacité, mouvement lent, effet glow diffus (sans distraire).
+Animations :
+Apparitions en fade/slide très fluides (200–300ms).
+Titre dynamique : la 1ʳᵉ phrase reste fixe, la 2ᵉ est un texte tapé/effacé de type “typing effect” qui alterne toutes les 1–2 sec entre plusieurs variantes (cf. plus bas).
+Dark par défaut, contraste AA, accessible (ARIA, focus visible).
+2. Routes & Navigation
+/ (Landing) → route par défaut.
+/auth : login & sign up (email + password, + Google OAuth si possible).
+/dashboard (protégé, RH uniquement) : tableau de bord + navigation vers pages internes.
+/employees, /absences, /reviews, /reports, /settings.
+Guard : si non authentifié → rediriger vers /auth.
+3. Landing Page (home par défaut)
+Hero full-width, fond sombre avec formes géométriques animées glow.
+Titre principal (ligne 1 – fixe, très grand) :
+“Réservez en toute simplicité.”
+Titre secondaire (ligne 2 – typing effect, cycle) :
+Variantes à alterner :
+“Choisissez votre coiffeur préféré.”
+“Parlez à notre réceptionniste IA.”
+“Visualisez les disponibilité en temps réel.”
+“Gérez, modifiez, annulez en 1 clic”
+La ligne 2 est tapée, puis effacée, puis remplacée par la suivante en boucle (intervalle 1–2s).
+CTA : “Prendre un rendez‑vous” (si connecté → /dashboard, sinon → /auth).
+Secondaire : “Parler à l’IA”.
+Section “Ce que fait l’app” (3–4 cards illustrées) :
+Réservation express : formulaire simple, slots en temps réel.
+IA réceptionniste : prise de RDV à la voix, 24/7, confirmations instantanées.
+Stylistes & services : choisissez un(e) coiffeur(se), durée & prix clairs.
+Paiement & rappels : acompte/plein tarif, SMS/Email/WhatsApp.
+Section “Comment ça marche” (3 étapes) : Choisissez service & date → 2) Validez & payez → 3) Recevez confirmation & rappels.
+Footer minimal (logo, mentions, lien “Se connecter”).
+4. Authentification
+Login (email, password) + Sign up (nom, email, password, entreprise).
+Mot de passe oublié (flow simple).
+Redirection post-login vers /dashboard.
+5. Dashboard Salon (V1)
+Objectif : vue synthétique, très visuelle, même branding que la landing.
+Header du dashboard
+Bonjour {Nom du salon / Manager}. Date courte. Boutons rapides : "*Nouveau service", "Ajouter un(e) styliste", accès rapide *IA (assistant interne).
+Widgets (cards)
+- *RDV du jour* — grand compteur + mini sparkline (7/30 jours).
+- *Slots libres restants* — compteur + lien /calendar.
+- *No‑shows / annulations* — compteur + variation vs. période précédente.
+- *Avis récents* (si activé) — 3 derniers.
+- *Répartition des services* (barres/anneau).
+- *Chiffre d’affaires par semaine* (ligne).
+- *Taux de remplissage* (barres ou jauge).
+*Sections clés / liens*
+- Calendrier, **Services, **Stylists, **Clients, **Rapports, **Paramètres, **Assistant IA*.
+
+## 6) Réservation — V1
+
+### a) Formulaire (/book)
+
+- *Étapes* : Service → Styliste (optionnel) → Date & créneau → Infos client → Paiement (optionnel) → Confirmation.
+- *Composants* :
+    - Sélecteur *Services* (durée, prix, description, tags : Coupe, Couleur, Brushing, Barber, etc.).
+    - Sélecteur *Styliste* (photo, spécialité, rating, prochaines dispos).
+    - *Calendrier* + slots *en temps réel* (respect règles de buffer & horaires).
+    - *Infos client* : prénom, nom, email, téléphone.
+    - *Paiement* : acompte % ou montant fixe, ou plein tarif (Stripe prêt à brancher).
+    - Check *CGV / politique d’annulation*.
+- *Confirmation* : écran + email/SMS, ajout au calendrier (ICS), boutons *Modifier/Annuler*.
+
+### b) Vocal (/voice) — IA Réceptionniste
+
+- *Widget* flottant ou page dédiée : bouton *micro* (hold‑to‑talk) + retour transcrit en direct.
+- *Pipeline* : STT → Orchestration LLM (intents) → Règles de planification → Confirmation TTS.
+- *Capacités* :
+    - Comprendre *intentions* : réserver, déplacer, annuler, demander prix/durée/adresse.
+    - Gérer *contraintes* : styliste préféré, plages horaires, durées cumulées (combo services), buffers, temps de pose.
+    - *Désambig* rapide : "Préférez‑vous le matin ou l’après‑midi ?", "Avec {Stylist} ou premier dispo ?".
+    - *Récapitulatif* à voix haute + visuel : service, date, heure, styliste, prix, conditions.
+    - *Confirmation* par mot‑clé : "Oui, confirme" → création RDV + envoi confirmation.
+- *Prompts d’exemples (client)* :
+    - "Je voudrais une coupe femme carrée jeudi après‑midi."
+    - "As‑tu une dispo demain avec Sarah pour un balayage ?"
+    - "Décale mon rendez‑vous de 16h à 17h, même styliste."
+    - "J’annule ma couleur de samedi, quelles sont les conditions ?"
+- *Réponses IA (ton poli, pro, concis)* :
+    - "Je regarde… J’ai *16:30* ou *17:15* pour *Coupe + Brushing (45 min)*. Lequel préférez‑vous ?"
+    - "Avec *Sarah, prochaine dispo **vendredi 11:00*. Je confirme ?"
+    - "C’est noté, j’ai déplacé votre rendez‑vous au *…*. Vous recevez un SMS de confirmation."
+
+## 7) Règles & Politiques
+
+- *Anti-doublon* : empêcher chevauchements par styliste & poste.
+- *Buffers* : x minutes entre RDV, configurable par service/styliste.
+- *Multi‑services* : durée totale = somme + buffers + temps de pose.
+- *No‑show* : option *acompte obligatoire* et *pénalité* (configurable), envoi *rappels* automatiques (J‑1, J‑0, H‑2).
+- *SLA IA* : temps max de réponse vocale < 1.5s (objectif), fallback en formulaire.
+
+---
+
+## 8) Pages & Fonctionnalités (côté salon)
+
+### a) Services (/services)
+
+- CRUD services : nom, durée, prix, description, tags, couleur d’étiquette.
+- Options : acompte requis, temps de pose, buffer avant/après.
+
+### b) Stylists (/stylists)
+
+- Liste + profils : nom, photo, spécialités, horaires, vacances, productivité.
+- Import/Export iCal, synchronisation (ex. Google/Apple) — mock V1.
+
+### c) Calendrier (/calendar)
+
+- Vue *jour/semaine* par *styliste*.
+- Drag & drop pour déplacer RDV, création rapide.
+- Filtres : styliste, service, statut.
+
+### d) Clients (/clients)
+
+- CRM léger : fiche client (coordonnées, historique RDV, no‑shows, notes, préférences styliste).
+- Recherche + filtres + export CSV.
+
+### e) Rapports (/reports)
+
+- RDV par service/styliste, CA, taux de remplissage, no‑shows.
+- Filtres période (semaine/mois/trimestre), export CSV (PDF si simple pour Lovable).
+
+### f) Paramètres (/settings)
+
+- Horaires du salon, jours fériés, périodes de fermeture.
+- Politique d’annulation, dépôts, rappels.
+- Branding (logo, couleurs), liens réseaux, coordonnées (adresse, map, tel, WhatsApp).
+- Intégrations : SMS/Email, Stripe, WhatsApp Business, numéro VoIP (IA).
+
+### g) Assistant IA (pane/modal global)
+
+- Questions en langage naturel, réponses *structurées* avec chiffres/listes.
+- Exemples :
+    - "Quels créneaux se remplissent le plus vite ?"
+    - "Synthétise les no‑shows du mois en 3 points."
+    - "Propose une nouvelle grille horaires pour réduire les creux."
+- Fonctions : détection d’anomalies, résumé d’avis, recommandations d’ouverture.
+
+---
+
+## 9) Données & Modèles (mock seed)
+
+- *Salon*: id, name, address, phone, email, hours\[], socials{}, policies{}.
+- *Service*: id, name, durationMin, price, description, tags\[], requiresDeposit, bufferBefore, bufferAfter, processingTime.
+- *Stylist*: id, firstName, lastName, photoUrl, specialties\[], schedule\[], vacations\[], status.
+- *Client*: id, firstName, lastName, email, phone, preferences{stylistId}, notes.
+- *Appointment*: id, clientId, stylistId, serviceIds\[], start, end, status(Pending/Confirmed/Completed/Cancelled/NoShow), channel(Form/Voice), depositAmount, paymentStatus.
+- *VoiceCall*: id, clientTempId, transcript, intent, entities{}, createdAt, result(AppointmentId|Info).
+- *Review* (optionnel): id, clientId, rating, comment, appointmentId, createdAt.
+- *Metrics (calculées)* : occupancyRate, revenueByWeek\[], topServices\[], noShowsTrend\[].
+
+*Jeu de données de démo (seed)* : 5–10 clients, 3–5 stylistes, 6–12 services, \~20 RDV répartis sur 2 semaines, 1–2 no‑shows.
+
+---
+
+## 10) Exigences techniques / livrables
+
+- *Landing = route par défaut* (toujours affichée au premier chargement hors auth).
+- *Responsive* mobile → desktop.
+- *Composants réutilisables* : Card, ButtonGlass, Modal, Table, Chart, CalendarSlot.
+- *Performances* : animations fluides, pas d’effets lourds.
+- *Code lisible* + commentaires courts.
+- *IA Réceptionniste (V1 – mock ready)* :
+    - STT/TTS remplaçables (adapteurs).
+    - Orchestrateur d’intents + validation formulaire invisible.
+    - Règles de planning (buffers, conflits) côté serveur.
+- *Sécurité* : rate‑limit sur endpoint voice, captcha invisible sur /book.
+
+---
+
+## 11) Textes & micro‑copy (exemples)
+
+- *CTA principal Landing* : "Prendre un rendez‑vous"
+- *Sous‑titre hero (petit)* : "Réservation en ligne et réceptionniste IA — en un seul endroit."
+- *Cards features* : "Réservation express", "IA réceptionniste", "Stylistes & services", "Paiement & rappels".
+- *Dashboard widget* : "RDV du jour"
+- *Empty states* : "Aucun rendez‑vous aujourd’hui… Ouvrez des créneaux pour booster les réservations."
+- *Toasts* : "Rendez‑vous confirmé ✨", "Créneau indisponible", "Paramètres enregistrés".
+
+---
+
+## 12) Flows clefs (résumé)
+
+- *Book Form* : Service → Styliste → Slot → Infos → Paiement → Confirmation → Rappels.
+- *Voice* : Salutation → Compréhension intention → Propositions slots → Choix → Récapitulatif → Confirmation vocale → Envoi SMS/email.
+- *Annulation* : client clique lien → vérification politique → confirmation + remboursement/avoir (selon règles).
+
+---
+
+## 13) Backlog V2+
+
+- Comptes multi‑salons/chaînes, marketplace locale.
+- App cliente PWA (wallet pass), carte de fidélité.
+- Reco IA de services complémentaires (upsell cross‑sell).
+- Photos avant/après dans la fiche client.
+- Intégration agenda 2‑sens (Google/Apple), téléphone entrant → IVR IA.
+— Fin du prompt V1 —
